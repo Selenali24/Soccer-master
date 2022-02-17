@@ -3,13 +3,16 @@ package cs301.Soccer;
 import android.util.Log;
 import cs301.Soccer.soccerPlayer.SoccerPlayer;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 /**
  * Soccer player database -- presently, all dummied up
  *
  * @author Selena Li
- * @version *** put date of completion here ***
+ * @version 16 Feb 2022
  *
  */
 public class SoccerDatabase implements SoccerDB {
@@ -135,6 +138,27 @@ public class SoccerDatabase implements SoccerDB {
     // get the nTH player
     @Override
     public SoccerPlayer playerIndex(int idx, String teamName) {
+        int iterator = 0;
+        if(teamName != null) {
+            for (Map.Entry<String, SoccerPlayer> entry : database.entrySet()) {
+                if(entry.getValue().getTeamName().equals(teamName)) {
+                    if (iterator == idx) {
+                        return entry.getValue();
+                    }
+                    iterator++;
+                }
+            }
+            return null;
+        }
+
+        else {
+            for(Map.Entry<String,SoccerPlayer> entry: database.entrySet()) {
+                if(iterator == idx) {
+                    return entry.getValue();
+                }
+                iterator++;
+            }
+        }
         return null;
     }
 
@@ -146,7 +170,32 @@ public class SoccerDatabase implements SoccerDB {
     // read data from file
     @Override
     public boolean readData(File file) {
-        return file.exists();
+        try {
+            Scanner inputStream = new Scanner(file);
+
+            while (inputStream.hasNextLine()) {
+                String firstName = inputStream.nextLine();
+                String lastName = inputStream.nextLine();
+                String teamName = inputStream.nextLine();
+                String uniform = inputStream.nextLine();
+                String goals = inputStream.nextLine();
+                String yellowCard = inputStream.nextLine();
+                String redCard = inputStream.nextLine();
+
+                int uniformNum = Integer.parseInt(uniform);
+                int goalsNum = Integer.parseInt(goals);
+                int yellowCardNum = Integer.parseInt(yellowCard);
+                int redCardNum = Integer.parseInt(redCard);
+
+                SoccerPlayer player = new SoccerPlayer(firstName,lastName,uniformNum,teamName);
+                String name = firstName + "##" + lastName;
+
+            }
+            return true;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**
@@ -157,7 +206,26 @@ public class SoccerDatabase implements SoccerDB {
     // write data to file
     @Override
     public boolean writeData(File file) {
-        return false;
+        String fileName = file.toString();
+        FileOutputStream outputStream = null;
+        try {
+            outputStream = new FileOutputStream(file);
+            for(Map.Entry<String,SoccerPlayer> entry: database.entrySet()) {
+                String info = "\n" + entry.getValue().getFirstName() + "\n" + entry.getValue().getLastName() +
+                        "\n" + entry.getValue().getTeamName() + "\n" + entry.getValue().getUniform() + "\n" + entry.getValue().getGoals() +
+                        "\n"+ entry.getValue().getYellowCards() + "\n" + entry.getValue().getRedCards();
+                System.out.println(logString(info));
+            }
+            outputStream.close();
+            return true;
+        }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**
@@ -166,7 +234,7 @@ public class SoccerDatabase implements SoccerDB {
      * @return the string s, unchanged
      */
     private String logString(String s) {
-        Log.i("write string", s);
+        //Log.i("write string", s);
         return s;
     }
 
@@ -178,7 +246,11 @@ public class SoccerDatabase implements SoccerDB {
     // return list of teams
     @Override
     public HashSet<String> getTeams() {
-        return new HashSet<String>();
+        HashSet teamNames = new HashSet<String>();
+        for(Map.Entry<String,SoccerPlayer> entry: database.entrySet()) {
+            teamNames.add(entry.getValue().getTeamName());
+        }
+        return teamNames;
     }
 
     /**
